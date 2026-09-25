@@ -1,0 +1,38 @@
+# EpilepticCLI configuration - copy to ~/.epilepticcli/config.yaml
+# Every preset works out of the box; add entries here only to customize.
+# For any reseller / custom endpoint: type openai + your base_url.
+
+default_provider: openai
+default_model: gpt-4o
+
+# Tool permissions: ask (confirm each write/edit/shell call) or auto.
+permission_mode: ask
+
+# Set to false to send ONLY your own system prompt (no built-in layers).
+# Same effect as the --raw-system flag - useful for prompt experiments.
+builtin_system_prompt: true
+
+max_tool_rounds: 40
+
+providers:
+  # --- resellers / custom OpenAI-compatible endpoints ---------------------
+  # - name: my-reseller
+  #   type: openai
+  #   base_url: https://reseller.example.com/v1
+  #   api_key: $MY_RESELLER_KEY      # "$ENV_VAR" reads from the environment
+  #   models: [gpt-4o, claude-sonnet-4-5]
+  #   default_headers: {}            # extra headers some resellers require
+
+  # --- presets can be tweaked too -----------------------------------------
+  # - name: openai
+  #   api_key: $OPENAI_API_KEY
+  #   models: [gpt-4o, gpt-4o-mini]
+
+  # - name: anthropic
+  #   type: anthropic
+  #   api_key: $ANTHROPIC_API_KEY
+  #   models: [claude-sonnet-4-5, claude-opus-4-1]
+
+  - name: demo
+    type: demo
+    models: [demo]
