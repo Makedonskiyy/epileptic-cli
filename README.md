@@ -45,7 +45,11 @@ control over what goes into the model's system prompt.
 
 ## Install
 
-Requires **Python 3.10+**. Works on Windows 11, Linux, and macOS.
+**Windows — no Python needed:** grab `epileptic.exe` from
+[Releases](https://github.com/Makedonskiyy/epileptic-cli/releases), run it from
+Windows Terminal. It's a portable single file — no installer required.
+
+**From PyPI/source** — requires Python 3.10+. Works on Windows 11, Linux, macOS:
 
 ```powershell
 # recommended: isolated install

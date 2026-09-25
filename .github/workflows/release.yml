@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Release tag name (e.g. v0.1.0)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install . pyinstaller
+      - name: Build exe
+        run: pyinstaller --onefile --name epileptic --console epileptic_entry.py
+      - name: Smoke test
+        run: .\dist\epileptic.exe --provider demo --model demo -p "smoke"
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: epileptic-windows-x64
+          path: dist/epileptic.exe
+
+  release:
+    needs: build-windows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: epileptic-windows-x64
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
+          name: EpilepticCLI ${{ github.event.inputs.tag_name || github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: epileptic.exe
+          body: |
+            ## EpilepticCLI
+
+            **epileptic.exe** - portable Windows x64 build. No install needed: download and run.
+
+            ```powershell
+            .\epileptic.exe
+            ```
+
+            Config lives in `%USERPROFILE%\.epilepticcli\config.yaml`.
+            Requires Windows Terminal or another Unicode-capable terminal for the full UI.
