@@ -32,6 +32,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--resume", metavar="SESSION_ID", help="resume a saved session")
     p.add_argument("-C", "--cwd", default=".", help="working directory")
     p.add_argument("--no-banner", action="store_true", help="skip the banner")
+    p.add_argument(
+        "command",
+        nargs="*",
+        help="subcommand: 'setup' | 'update' | 'key set <provider> <api_key>' | 'key remove <provider>'",
+    )
     p.add_argument("-V", "--version", action="version", version=f"{APP_NAME} {__version__}")
     return p
 
@@ -39,6 +44,10 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> None:
     args = build_parser().parse_args(argv)
     cwd = Path(args.cwd)
+
+    if args.command:
+        _subcommand(args.command)
+        return
 
     extra = args.system_prompt
     if args.system_prompt_file:
@@ -76,6 +85,39 @@ def main(argv: list[str] | None = None) -> None:
         return
 
     app.run(banner=not args.no_banner)
+
+
+def _subcommand(argv: list[str]) -> None:
+    """epileptic setup | update | key set|remove ..."""
+    from epilepticcli.commands import run_setup_wizard
+    from epilepticcli.config import ensure_provider_entry, load_config, save_config
+    from epilepticcli.core.update import self_update
+
+    cmd, rest = argv[0], argv[1:]
+    if cmd == "setup":
+        app = App(cwd=Path.cwd())
+        run_setup_wizard(app)
+    elif cmd == "update":
+        print(self_update())
+    elif cmd == "key" and len(rest) == 2 and rest[0] == "set":
+        print("usage: epileptic key set <provider> <api_key>", file=sys.stderr)
+        sys.exit(2)
+    elif cmd == "key" and len(rest) == 3 and rest[0] == "set":
+        cfg = load_config()
+        pc = ensure_provider_entry(cfg, rest[1])
+        pc.api_key = rest[2]
+        save_config(cfg)
+        print(f"key for {rest[1]} saved")
+    elif cmd == "key" and len(rest) == 2 and rest[0] == "remove":
+        cfg = load_config()
+        pc = cfg.providers.get(rest[1])
+        if pc:
+            pc.api_key = None
+            save_config(cfg)
+        print(f"stored key for {rest[1]} removed")
+    else:
+        print(f"unknown command: {' '.join(argv)}", file=sys.stderr)
+        sys.exit(2)
 
 
 def _one_shot(app: App, text: str) -> None:

@@ -2,13 +2,23 @@
 
 from __future__ import annotations
 
+import contextlib
+import getpass
 import os
 import subprocess
 import sys
 
-from epilepticcli.config import AGENTS_DIR, CONFIG_FILE, SYSTEM_PROMPT_FILE
+from epilepticcli.config import (
+    AGENTS_DIR,
+    CONFIG_FILE,
+    SYSTEM_PROMPT_FILE,
+    ensure_provider_entry,
+    provider_has_key,
+    save_config,
+)
 from epilepticcli.core.agents import list_agents
 from epilepticcli.core.session import Session, list_sessions
+from epilepticcli.core.update import self_update
 from epilepticcli.providers.registry import PRESETS, known_providers, resolve_env_key
 from epilepticcli.ui import render
 from epilepticcli.ui.theme import GLYPH_SEP
@@ -279,8 +289,144 @@ def _exit(app, arg: str) -> bool:
     return False
 
 
+def _provider_names(app) -> list[str]:
+    ordered = [n for n in PRESETS if n != "demo"]
+    extra = sorted(n for n in known_providers(app.cfg) if n not in PRESETS and n != "demo")
+    return ordered + extra
+
+
+def _store_key(app, name: str, key: str) -> None:
+    pc = ensure_provider_entry(app.cfg, name)
+    pc.api_key = key
+    save_config(app.cfg)
+    with contextlib.suppress(OSError):
+        CONFIG_FILE.chmod(0o600)
+
+
+def run_setup_wizard(app) -> None:
+    """Interactive first-run / /setup wizard: pick provider -> paste key -> done."""
+    names = _provider_names(app)
+    app.console.print()
+    render.status(app.console, "provider setup - pick one")
+    rows = []
+    for i, n in enumerate(names, 1):
+        env_key = resolve_env_key(n)
+        mark = "key set" if provider_has_key(app.cfg, n) else ""
+        rows.append([str(i), n, env_key or "-", mark])
+    render.table(app.console, ["#", "provider", "env var", "status"], rows)
+    try:
+        choice = app.console.input("  provider number or name: ").strip()
+    except (EOFError, KeyboardInterrupt):
+        return
+    if not choice:
+        return
+    if choice.isdigit() and 1 <= int(choice) <= len(names):
+        name = names[int(choice) - 1]
+    elif choice in names:
+        name = choice
+    else:
+        render.error(app.console, f"unknown provider '{choice}'")
+        return
+
+    env_key = resolve_env_key(name)
+    if env_key and os.environ.get(env_key):
+        render.status(app.console, f"{env_key} already set in the environment - using it")
+    elif env_key or name not in PRESETS:
+        try:
+            key = getpass.getpass(f"  paste API key for {name} (input hidden): ").strip()
+        except (EOFError, KeyboardInterrupt):
+            return
+        if key:
+            _store_key(app, name, key)
+            render.status(app.console, f"key saved to {CONFIG_FILE}")
+
+    try:
+        make_default = app.console.input(f"  use {name} as your default provider? [Y/n] ").strip().lower()
+    except (EOFError, KeyboardInterrupt):
+        return
+    if make_default in ("", "y", "yes"):
+        app.cfg.default_provider = name
+        models = PRESETS.get(name).models if name in PRESETS else app.cfg.providers[name].models
+        if models:
+            app.cfg.default_model = models[0]
+        save_config(app.cfg)
+        app.set_provider(name)
+        if app.cfg.default_model:
+            app.set_model(app.cfg.default_model)
+        render.status(app.console, "all set - start typing to chat")
+
+
+def _setup(app, arg: str) -> bool:
+    """Interactive wizard to configure a provider + API key."""
+    run_setup_wizard(app)
+    return True
+
+
+def _mask(key: str) -> str:
+    return "…" + key[-4:] if len(key) > 4 else "…"
+
+
+def _key(app, arg: str) -> bool:
+    """Manage API keys: /key list | set <provider> <key> | remove <provider>"""
+    parts = arg.split()
+    action = parts[0] if parts else "list"
+
+    if action == "list":
+        rows = []
+        for n in _provider_names(app):
+            env_key = resolve_env_key(n)
+            pc = app.cfg.providers.get(n)
+            if env_key and os.environ.get(env_key):
+                source, shown = "env", _mask(os.environ[env_key])
+            elif pc and pc.api_key and not pc.api_key.startswith("$"):
+                source, shown = "config", _mask(pc.api_key)
+            elif pc and pc.api_key and pc.api_key.startswith("$"):
+                source, shown = f"env:{pc.api_key[1:]}", "(unset)" if not os.environ.get(pc.api_key[1:]) else _mask(os.environ[pc.api_key[1:]])
+            else:
+                source, shown = "-", "(none)"
+            rows.append([n, env_key or "-", source, shown])
+        render.table(app.console, ["provider", "env var", "source", "key"], rows)
+        return True
+
+    if action == "set" and len(parts) >= 3:
+        name, key = parts[1], parts[2]
+        if name not in known_providers(app.cfg):
+            render.error(app.console, f"unknown provider '{name}' - check /providers")
+            return True
+        _store_key(app, name, key)
+        render.status(app.console, f"key for {name} saved to {CONFIG_FILE}")
+        return True
+
+    if action == "remove" and len(parts) == 2:
+        name = parts[1]
+        pc = app.cfg.providers.get(name)
+        if pc and pc.api_key:
+            pc.api_key = None
+            save_config(app.cfg)
+            render.status(app.console, f"stored key for {name} removed")
+        else:
+            render.status(app.console, f"no stored key for {name}")
+        return True
+
+    render.error(app.console, "usage: /key list | set <provider> <key> | remove <provider>")
+    return True
+
+
+def _update(app, arg: str) -> bool:
+    """Check for a new version and self-update."""
+    render.status(app.console, "checking for updates…")
+    msg = self_update()
+    render.status(app.console, msg)
+    # exit so the updater can swap the exe
+    return "restarting to apply" not in msg
+
+
 _HANDLERS = {
     "help": _help,
+    "setup": _setup,
+    "key": _key,
+    "keys": _key,
+    "update": _update,
     "model": _model,
     "provider": _provider,
     "providers": _providers,

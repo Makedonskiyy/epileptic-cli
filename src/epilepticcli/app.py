@@ -53,6 +53,9 @@ class App:
         self.session = Session.new(self.provider_name, self.model)
         self._reset_system_prompt()
 
+        self._update_hint_shown = False
+        self._update_info = None
+
     # ---- wiring -----------------------------------------------------------
 
     def _build_provider(self, name: str) -> Provider:
@@ -224,6 +227,22 @@ class App:
         if banner:
             render_banner(self.console)
         self._welcome_line()
+
+        # First run: no config file and no key for the default provider -> wizard
+        from epilepticcli.config import CONFIG_FILE, provider_has_key
+
+        first_run = not CONFIG_FILE.exists() or (
+            not provider_has_key(self.cfg, self.provider_name)
+            and not any(provider_has_key(self.cfg, n) for n in self.cfg.providers)
+        )
+        if first_run and provider_has_key(self.cfg, self.provider_name) is False:
+            render.status(self.console, "no API key configured yet - let's fix that")
+            slash_commands.run_setup_wizard(self)
+
+        from epilepticcli.core.update import check_async
+
+        check_async(self._on_update_check)
+
         session = make_session(self.cwd, slash_commands.descriptions())
         while True:
             try:
@@ -234,9 +253,22 @@ class App:
             except (EOFError, KeyboardInterrupt):
                 self.console.print()
                 break
+            self._maybe_show_update_hint()
             if not self.handle(text):
                 break
         render.status(self.console, "session saved to ~/.epilepticcli/sessions")
+
+    def _on_update_check(self, info) -> None:
+        self._update_info = info
+
+    def _maybe_show_update_hint(self) -> None:
+        info = self._update_info
+        if info and info.newer and not self._update_hint_shown:
+            self._update_hint_shown = True
+            render.status(
+                self.console,
+                f"new version {info.tag} available - run /update to install",
+            )
 
     def _welcome_line(self) -> None:
         render.status(

@@ -26,11 +26,17 @@ jobs:
         run: pyinstaller --onefile --name epileptic --console epileptic_entry.py
       - name: Smoke test
         run: .\dist\epileptic.exe --provider demo --model demo -p "smoke"
-      - name: Upload artifact
+      - name: Build installer
+        run: |
+          choco install innosetup --no-progress -y
+          $tag = "${{ github.event.inputs.tag_name }}"; if (-not $tag) { $tag = "${{ github.ref_name }}" }
+          $ver = $tag.TrimStart('v')
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "/DMyAppVersion=$ver" installer\epileptic.iss
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: epileptic-windows-x64
-          path: dist/epileptic.exe
+          path: dist/*.exe
 
   release:
     needs: build-windows
@@ -47,15 +53,16 @@ jobs:
           draft: false
           prerelease: false
           generate_release_notes: true
-          files: epileptic.exe
+          files: |
+            epileptic.exe
+            EpilepticCLI-Setup.exe
           body: |
             ## EpilepticCLI
 
-            **epileptic.exe** - portable Windows x64 build. No install needed: download and run.
+            **EpilepticCLI-Setup.exe** - recommended installer: installs to `%LOCALAPPDATA%\Programs\EpilepticCLI`, adds it to your PATH, and gives you `/update` + auto-update notifications. No admin rights needed. Open a new terminal afterwards and run `epileptic`.
 
-            ```powershell
-            .\epileptic.exe
-            ```
+            **epileptic.exe** - portable Windows x64 build, no install needed.
 
-            Config lives in `%USERPROFILE%\.epilepticcli\config.yaml`.
+            First run guides you through picking a provider and pasting your API key (`/setup`, `/key set`, `epileptic setup` also work). Config lives in `%USERPROFILE%\.epilepticcli\config.yaml`.
+
             Requires Windows Terminal or another Unicode-capable terminal for the full UI.

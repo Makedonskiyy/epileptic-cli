@@ -109,6 +109,41 @@ def load_config() -> Config:
     )
 
 
+def ensure_provider_entry(cfg: Config, name: str) -> ProviderConfig:
+    """Return the config entry for `name`, creating it from preset defaults.
+
+    Copies the preset's fields so saving the entry preserves type/base_url —
+    a bare {name, api_key} entry would otherwise silently reset type to openai.
+    """
+    if name in cfg.providers:
+        return cfg.providers[name]
+    from epilepticcli.providers.registry import PRESETS
+
+    preset = PRESETS.get(name)
+    pc = ProviderConfig(
+        name=name,
+        type=preset.type if preset else "openai",
+        base_url=preset.base_url if preset else None,
+        models=list(preset.models) if preset else [],
+    )
+    cfg.providers[name] = pc
+    return pc
+
+
+def provider_has_key(cfg: Config, name: str) -> bool:
+    """True if the provider has a usable key (stored or via env var)."""
+    from epilepticcli.providers.registry import resolve_env_key, resolve_provider_config
+
+    try:
+        pc = resolve_provider_config(cfg, name)
+    except KeyError:
+        return False
+    env_key = resolve_env_key(name)
+    if env_key is None:
+        return True  # keyless provider (ollama, lmstudio, demo)
+    return pc.resolved_api_key(env_key) is not None
+
+
 def save_config(cfg: Config) -> None:
     ensure_dirs()
     data = {

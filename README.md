@@ -45,9 +45,21 @@ control over what goes into the model's system prompt.
 
 ## Install
 
-**Windows — no Python needed:** grab `epileptic.exe` from
-[Releases](https://github.com/Makedonskiyy/epileptic-cli/releases), run it from
-Windows Terminal. It's a portable single file — no installer required.
+**Windows — no Python needed:** grab the installer or the portable exe from
+[Releases](https://github.com/Makedonskiyy/epileptic-cli/releases):
+
+- **`EpilepticCLI-Setup.exe`** (recommended) — installs to `%LOCALAPPDATA%\Programs\EpilepticCLI`,
+  adds it to your PATH (no admin needed), and enables auto-update. Open a fresh
+  terminal after installing, then just run `epileptic`.
+- **`epileptic.exe`** — portable single file, download and run.
+
+Either way, the **first run walks you through setup**: pick a provider, paste
+your API key (input is hidden), done. The key is saved to
+`~/.epilepticcli/config.yaml` — no manual YAML editing required.
+
+**Auto-update:** the app checks GitHub Releases for a newer version in the
+background and tells you once; `/update` downloads and swaps the exe in place
+(`epileptic update` from the shell works too). Source installs update via pip.
 
 **From PyPI/source** — requires Python 3.10+. Works on Windows 11, Linux, macOS:
 
@@ -71,13 +83,19 @@ pip install -e .
 ## Quick start
 
 ```powershell
-# set a key for the provider you want (PowerShell example)
+# the guided way - pick a provider, paste the key, go
+epileptic                    # first run auto-opens the setup wizard
+epileptic setup              # run it again any time
+epileptic key set selora sk-gw-...   # non-interactive equivalent
+
+# or the env-var way (PowerShell example)
 $env:OPENAI_API_KEY = "sk-..."
 epileptic
 
 # or pick another provider/model on launch
 epileptic --provider anthropic --model claude-sonnet-4-5
 epileptic --provider openrouter --model anthropic/claude-sonnet-4.5
+epileptic --provider selora --model claude-sonnet-5
 epileptic --provider ollama --model llama3.3
 
 # try the UI with zero keys - built-in offline provider
@@ -192,6 +210,9 @@ byte-for-byte your layers, with no hidden prompt additions.
 | command | what it does |
 |---|---|
 | `/help` | command list |
+| `/setup` | interactive provider + API-key wizard |
+| `/key list\|set\|remove` | manage stored API keys |
+| `/update` | check + self-update to the latest release |
 | `/model [name]` | show / switch model |
 | `/provider [name]`, `/providers` | switch / list providers + key status |
 | `/system show\|edit\|raw\|clear` | inspect and control the system prompt |
