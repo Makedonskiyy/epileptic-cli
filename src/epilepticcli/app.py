@@ -220,8 +220,9 @@ class App:
 
     # ---- main loop ---------------------------------------------------------
 
-    def run(self) -> None:
-        render_banner(self.console)
+    def run(self, banner: bool = True) -> None:
+        if banner:
+            render_banner(self.console)
         self._welcome_line()
         session = make_session(self.cwd, slash_commands.descriptions())
         while True:

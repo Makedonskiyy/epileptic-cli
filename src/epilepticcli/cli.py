@@ -69,16 +69,13 @@ def main(argv: list[str] | None = None) -> None:
             render.error(app.console, f"cannot resume: {e}")
 
     if args.prompt is not None:
-        app._no_banner = True
         if sys.stdout.isatty():
             app.chat(args.prompt)
         else:
             _one_shot(app, args.prompt)
         return
 
-    if args.no_banner:
-        app.console.clear()
-    app.run()
+    app.run(banner=not args.no_banner)
 
 
 def _one_shot(app: App, text: str) -> None:
