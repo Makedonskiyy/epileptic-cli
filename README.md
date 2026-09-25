@@ -15,6 +15,9 @@ black + violet · streaming markdown · tools · agents · raw prompt mode
 
 by **Epileptic Hurts** · MIT License · English (US)
 
+<img src="docs/screenshot-banner.png" alt="EpilepticCLI banner" width="720">
+<img src="docs/screenshot.png" alt="EpilepticCLI streaming markdown" width="720">
+
 </div>
 
 ---
