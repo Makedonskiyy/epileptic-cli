@@ -84,6 +84,19 @@ PRESETS: dict[str, Preset] = {
         env_key="XAI_API_KEY",
         models=["grok-4", "grok-3", "grok-3-mini"],
     ),
+    "selora": Preset(
+        type="openai",
+        base_url="https://api.selora.lol/v1",
+        env_key="SELORA_API_KEY",
+        models=["claude-sonnet-5", "kimi-k3"],
+    ),
+    "selora-anthropic": Preset(
+        type="anthropic",
+        # bare origin on purpose - the SDK appends /v1/messages itself
+        base_url="https://api.selora.lol",
+        env_key="SELORA_API_KEY",
+        models=["claude-sonnet-5", "kimi-k3"],
+    ),
     "ollama": Preset(
         type="openai",
         base_url="http://localhost:11434/v1",

@@ -104,6 +104,8 @@ Presets (`/providers` lists them live, including key status):
 | `together` | openai | `TOGETHER_API_KEY` | |
 | `mistral` | openai | `MISTRAL_API_KEY` | |
 | `xai` | openai | `XAI_API_KEY` | Grok |
+| `selora` | openai | `SELORA_API_KEY` | gateway: Anthropic/OpenAI/Moonshot models, `sk-gw-…` keys |
+| `selora-anthropic` | anthropic | `SELORA_API_KEY` | same gateway, native Anthropic wire |
 | `ollama` | openai | – | localhost:11434 |
 | `lmstudio` | openai | – | localhost:1234 |
 | `demo` | demo | – | offline, for testing the UI |
