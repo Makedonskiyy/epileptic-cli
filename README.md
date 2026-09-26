@@ -124,12 +124,22 @@ Presets (`/providers` lists them live, including key status):
 | `xai` | openai | `XAI_API_KEY` | Grok |
 | `selora` | openai | `SELORA_API_KEY` | gateway: Anthropic/OpenAI/Moonshot models, `sk-gw-…` keys |
 | `selora-anthropic` | anthropic | `SELORA_API_KEY` | same gateway, native Anthropic wire |
+| `darkapi` | openai | `DARKAPI_API_KEY` | darkapi.shop gateway |
 | `ollama` | openai | – | localhost:11434 |
 | `lmstudio` | openai | – | localhost:1234 |
 | `demo` | demo | – | offline, for testing the UI |
 
+**Custom providers without YAML editing:** `/setup` has a `c) custom provider`
+option — it asks for a name, base URL, protocol (`openai` or `anthropic`) and
+model names, then your key. Or from the shell:
+
+```powershell
+epileptic provider add my-gw https://api.example.com/v1 openai model-a,model-b
+epileptic key set my-gw sk-...
+```
+
 **Resellers / custom endpoints:** any provider of type `openai` accepts a `base_url`,
-custom headers, and its own key — add it in `~/.epilepticcli/config.yaml`:
+custom headers, and its own key — the same entry in `~/.epilepticcli/config.yaml`:
 
 ```yaml
 providers:

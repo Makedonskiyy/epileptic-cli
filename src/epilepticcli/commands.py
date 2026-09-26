@@ -12,6 +12,7 @@ from epilepticcli.config import (
     AGENTS_DIR,
     CONFIG_FILE,
     SYSTEM_PROMPT_FILE,
+    ProviderConfig,
     ensure_provider_entry,
     provider_has_key,
     save_config,
@@ -303,6 +304,38 @@ def _store_key(app, name: str, key: str) -> None:
         CONFIG_FILE.chmod(0o600)
 
 
+def _custom_provider_flow(app) -> str | None:
+    """Add a brand-new provider: name, base_url, protocol, models. Returns its name."""
+    try:
+        name = app.console.input("  provider name (e.g. my-gw): ").strip()
+        if not name:
+            return None
+        if name in known_providers(app.cfg):
+            render.status(app.console, f"{name} already exists - configuring it")
+        base_url = app.console.input("  base URL (e.g. https://api.example.com/v1): ").strip()
+        if not base_url:
+            render.error(app.console, "base URL is required")
+            return None
+        ptype = (app.console.input("  wire protocol [openai/anthropic] (default: openai): ").strip().lower() or "openai")
+        if ptype not in ("openai", "anthropic"):
+            render.error(app.console, f"unknown protocol '{ptype}' - use openai or anthropic")
+            return None
+        models_in = app.console.input("  model names, comma-separated (optional): ").strip()
+    except (EOFError, KeyboardInterrupt):
+        return None
+    models = [m.strip() for m in models_in.split(",") if m.strip()]
+    existing = app.cfg.providers.get(name)
+    pc = existing or ProviderConfig(name=name)
+    pc.type = ptype
+    pc.base_url = base_url
+    if models:
+        pc.models = models
+    app.cfg.providers[name] = pc
+    save_config(app.cfg)
+    render.status(app.console, f"provider {name} saved to {CONFIG_FILE}")
+    return name
+
+
 def run_setup_wizard(app) -> None:
     """Interactive first-run / /setup wizard: pick provider -> paste key -> done."""
     names = _provider_names(app)
@@ -314,13 +347,18 @@ def run_setup_wizard(app) -> None:
         mark = "key set" if provider_has_key(app.cfg, n) else ""
         rows.append([str(i), n, env_key or "-", mark])
     render.table(app.console, ["#", "provider", "env var", "status"], rows)
+    app.console.print("     c) custom provider - enter your own base_url")
     try:
-        choice = app.console.input("  provider number or name: ").strip()
+        choice = app.console.input("  provider number or name (or 'c' for custom): ").strip()
     except (EOFError, KeyboardInterrupt):
         return
     if not choice:
         return
-    if choice.isdigit() and 1 <= int(choice) <= len(names):
+    if choice.lower() in ("c", "custom"):
+        name = _custom_provider_flow(app)
+        if not name:
+            return
+    elif choice.isdigit() and 1 <= int(choice) <= len(names):
         name = names[int(choice) - 1]
     elif choice in names:
         name = choice
@@ -331,9 +369,9 @@ def run_setup_wizard(app) -> None:
     env_key = resolve_env_key(name)
     if env_key and os.environ.get(env_key):
         render.status(app.console, f"{env_key} already set in the environment - using it")
-    elif env_key or name not in PRESETS:
+    else:
         try:
-            key = getpass.getpass(f"  paste API key for {name} (input hidden): ").strip()
+            key = getpass.getpass(f"  paste API key for {name} (empty = skip): ").strip()
         except (EOFError, KeyboardInterrupt):
             return
         if key:
@@ -346,7 +384,7 @@ def run_setup_wizard(app) -> None:
         return
     if make_default in ("", "y", "yes"):
         app.cfg.default_provider = name
-        models = PRESETS.get(name).models if name in PRESETS else app.cfg.providers[name].models
+        models = PRESETS[name].models if name in PRESETS else app.cfg.providers[name].models
         if models:
             app.cfg.default_model = models[0]
         save_config(app.cfg)

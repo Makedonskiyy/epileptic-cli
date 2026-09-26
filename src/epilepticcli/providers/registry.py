@@ -97,6 +97,12 @@ PRESETS: dict[str, Preset] = {
         env_key="SELORA_API_KEY",
         models=["claude-sonnet-5", "kimi-k3"],
     ),
+    "darkapi": Preset(
+        type="openai",
+        base_url="https://darkapi.shop/v1",
+        env_key="DARKAPI_API_KEY",
+        models=["gpt-6-luna"],
+    ),
     "ollama": Preset(
         type="openai",
         base_url="http://localhost:11434/v1",

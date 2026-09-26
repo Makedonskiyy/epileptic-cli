@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "epilepticcli"
-version = "0.2.0"
+version = "0.2.1"
 description = "EpilepticCLI - a multi-provider AI terminal client with deep system-prompt control."
 readme = "README.md"
 requires-python = ">=3.10"

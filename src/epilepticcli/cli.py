@@ -35,7 +35,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "command",
         nargs="*",
-        help="subcommand: 'setup' | 'update' | 'key set <provider> <api_key>' | 'key remove <provider>'",
+        help="subcommand: 'setup' | 'update' | 'key set|remove' | 'provider add <name> <base_url> [type] [models]'",
     )
     p.add_argument("-V", "--version", action="version", version=f"{APP_NAME} {__version__}")
     return p
@@ -115,6 +115,25 @@ def _subcommand(argv: list[str]) -> None:
             pc.api_key = None
             save_config(cfg)
         print(f"stored key for {rest[1]} removed")
+    elif cmd == "provider" and rest and rest[0] == "add":
+        # epileptic provider add <name> <base_url> [openai|anthropic] [model,model,...]
+        if len(rest) < 3:
+            print("usage: epileptic provider add <name> <base_url> [openai|anthropic] [model1,model2,...]",
+                  file=sys.stderr)
+            sys.exit(2)
+        name, base_url = rest[1], rest[2]
+        ptype = rest[3] if len(rest) > 3 else "openai"
+        if ptype not in ("openai", "anthropic"):
+            print(f"unknown protocol '{ptype}' - use openai or anthropic", file=sys.stderr)
+            sys.exit(2)
+        models = [m.strip() for m in rest[4].split(",") if m.strip()] if len(rest) > 4 else []
+        cfg = load_config()
+        pc = cfg.providers.get(name) or ensure_provider_entry(cfg, name)
+        pc.type, pc.base_url = ptype, base_url
+        if models:
+            pc.models = models
+        save_config(cfg)
+        print(f"provider {name} saved ({ptype} @ {base_url}) - then: epileptic key set {name} <key>")
     else:
         print(f"unknown command: {' '.join(argv)}", file=sys.stderr)
         sys.exit(2)
