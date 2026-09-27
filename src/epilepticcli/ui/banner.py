@@ -5,7 +5,6 @@ from epilepticcli.ui.theme import (
     FAINT,
     LAVENDER,
     LILAC,
-    MAGENTA,
     VIOLET,
     VIOLET_DEEP,
     VIOLET_DIM,
@@ -26,19 +25,21 @@ GRADIENT = [VIOLET_DIM, VIOLET_DEEP, VIOLET, LAVENDER, LILAC]
 def render(console) -> None:
     from rich.text import Text
 
+    width = len(RULE)
     console.print()
     console.print(Text(RULE, style=f"{VIOLET_DIM}"))
     for i, line in enumerate(WORDMARK):
+        pad = (width - len(line)) // 2
         style = f"bold {GRADIENT[min(i + 1, len(GRADIENT) - 1)]}"
-        console.print(Text("  " + line, style=style))
-    console.print(Text("   ▸▸ C L I ◂◂", style=f"bold {MAGENTA}"))
+        console.print(Text(" " * pad + line, style=style))
     console.print(Text(RULE, style=f"{VIOLET_DIM}"))
     tag = Text()
-    tag.append("  multi-provider AI terminal", style=f"{FAINT}")
+    tag.append("multi-provider AI terminal", style=f"{FAINT}")
     tag.append("  ⟢  ", style=f"{VIOLET_DEEP}")
     tag.append(f"v{__version__}", style=f"{LAVENDER}")
     tag.append("  ⟢  ", style=f"{VIOLET_DEEP}")
     tag.append(f"by {__author__}", style=f"italic {FAINT}")
+    tag.pad_left(max(0, (width - tag.cell_len) // 2))
     console.print(tag)
     console.print()
 
