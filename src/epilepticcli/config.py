@@ -62,6 +62,7 @@ class Config:
     permission_mode: str = "ask"
     builtin_system_prompt: bool = True
     max_tool_rounds: int = 40
+    reasoning: str | None = None  # off|low|medium|high
     providers: dict[str, ProviderConfig] = field(default_factory=dict)
 
     def provider(self, name: str | None = None) -> ProviderConfig | None:
@@ -105,6 +106,7 @@ def load_config() -> Config:
         permission_mode=str(raw.get("permission_mode") or "ask"),
         builtin_system_prompt=bool(raw.get("builtin_system_prompt", True)),
         max_tool_rounds=int(raw.get("max_tool_rounds") or 40),
+        reasoning=raw.get("reasoning"),
         providers=providers,
     )
 
@@ -152,6 +154,7 @@ def save_config(cfg: Config) -> None:
         "permission_mode": cfg.permission_mode,
         "builtin_system_prompt": cfg.builtin_system_prompt,
         "max_tool_rounds": cfg.max_tool_rounds,
+        "reasoning": cfg.reasoning,
         "providers": [
             {
                 "name": p.name,

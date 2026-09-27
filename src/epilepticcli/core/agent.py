@@ -23,6 +23,7 @@ def run_agent_turn(
     *,
     max_rounds: int = 40,
     temperature: float | None = None,
+    reasoning: str | None = None,
     on_delta: OnDelta | None = None,
     on_tool_event: OnToolEvent | None = None,
     approve: Approve | None = None,
@@ -37,7 +38,12 @@ def run_agent_turn(
 
     for _ in range(max_rounds):
         msg = provider.stream_chat(
-            messages, model, tools=tool_specs, temperature=temperature, on_delta=on_delta
+            messages,
+            model,
+            tools=tool_specs,
+            temperature=temperature,
+            reasoning=reasoning,
+            on_delta=on_delta,
         )
         last = msg
         messages.append(msg.to_wire())

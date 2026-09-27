@@ -38,6 +38,7 @@ class OpenAICompatProvider(Provider):
         tools: list[ToolSpec] | None = None,
         temperature: float | None = None,
         max_tokens: int | None = None,
+        reasoning: str | None = None,
         on_delta: OnDelta | None = None,
     ) -> AssistantMessage:
         kwargs: dict[str, Any] = {
@@ -53,6 +54,8 @@ class OpenAICompatProvider(Provider):
             kwargs["temperature"] = temperature
         if max_tokens is not None:
             kwargs["max_tokens"] = max_tokens
+        if reasoning and reasoning != "off":
+            kwargs["reasoning_effort"] = reasoning
 
         content_parts: list[str] = []
         calls: dict[int, dict[str, Any]] = {}

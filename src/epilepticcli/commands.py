@@ -268,6 +268,22 @@ def _permissions(app, arg: str) -> bool:
     return True
 
 
+def _reasoning(app, arg: str) -> bool:
+    """Reasoning effort: /reasoning off|low|medium|high"""
+    if not arg:
+        render.status(app.console, f"reasoning: {app.reasoning or 'off'}")
+        return True
+    level = arg.strip().lower()
+    if level not in ("off", "low", "medium", "high"):
+        render.error(app.console, "usage: /reasoning off|low|medium|high")
+        return True
+    app.reasoning = None if level == "off" else level
+    app.cfg.reasoning = app.reasoning
+    save_config(app.cfg)
+    render.status(app.console, f"reasoning → {level} (saved)")
+    return True
+
+
 def _config(app, arg: str) -> bool:
     """Show config location and effective settings."""
     rows = [
@@ -279,6 +295,7 @@ def _config(app, arg: str) -> bool:
         ["permissions", app.permission_mode],
         ["builtin_system_prompt", str(app.cfg.builtin_system_prompt)],
         ["raw mode", str(app.raw_mode)],
+        ["reasoning", app.reasoning or "off"],
         ["cwd", str(app.cwd)],
     ]
     render.table(app.console, ["setting", "value"], rows)
@@ -465,6 +482,7 @@ _HANDLERS = {
     "key": _key,
     "keys": _key,
     "update": _update,
+    "reasoning": _reasoning,
     "model": _model,
     "provider": _provider,
     "providers": _providers,

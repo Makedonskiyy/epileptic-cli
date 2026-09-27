@@ -29,6 +29,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="send only your custom system prompt - no built-in prompt layers",
     )
     p.add_argument("--permission", choices=["ask", "auto"], help="tool permission mode")
+    p.add_argument(
+        "--reasoning",
+        choices=["off", "low", "medium", "high"],
+        help="reasoning effort (reasoning_effort for OpenAI-compat, thinking budget for Anthropic)",
+    )
     p.add_argument("--resume", metavar="SESSION_ID", help="resume a saved session")
     p.add_argument("-C", "--cwd", default=".", help="working directory")
     p.add_argument("--no-banner", action="store_true", help="skip the banner")
@@ -65,6 +70,7 @@ def main(argv: list[str] | None = None) -> None:
         extra_system=extra,
         raw_mode=args.raw_system,
         permission_mode=args.permission,
+        reasoning=args.reasoning,
     )
 
     if args.resume:
@@ -157,7 +163,7 @@ def _one_shot(app: App, text: str) -> None:
         app.messages, app.provider, app.model, app.tools,
         max_rounds=app.cfg.max_tool_rounds, on_delta=delta, on_tool_event=event,
         approve=lambda tool, args: app.permission_mode == "auto",
-        enabled_tools=enabled,
+        enabled_tools=enabled, reasoning=app.reasoning,
     )
     sys.stdout.write("\n")
     app.session.input_tokens += msg.usage.input_tokens

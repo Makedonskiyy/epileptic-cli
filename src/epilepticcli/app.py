@@ -31,12 +31,14 @@ class App:
         extra_system: str | None = None,
         raw_mode: bool = False,
         permission_mode: str | None = None,
+        reasoning: str | None = None,
     ) -> None:
         self.cwd = cwd.resolve()
         self.cfg: Config = load_config()
         self.provider_name = provider_name or self.cfg.default_provider
         self.model = model or self.cfg.default_model
         self.permission_mode = permission_mode or self.cfg.permission_mode
+        self.reasoning = reasoning if reasoning is not None else self.cfg.reasoning
         self.raw_mode = raw_mode
         self.extra_system = extra_system
         self.agent: Agent | None = None
@@ -203,6 +205,7 @@ class App:
                     self.model,
                     self.tools,
                     max_rounds=self.cfg.max_tool_rounds,
+                    reasoning=self.reasoning,
                     on_delta=sr.feed,
                     on_tool_event=self._on_tool_event,
                     approve=self._approve,
@@ -273,7 +276,8 @@ class App:
     def _welcome_line(self) -> None:
         render.status(
             self.console,
-            f"{self.provider_name} / {self.model} · cwd {self.cwd} · permissions {self.permission_mode}",
+            f"{self.provider_name} / {self.model} · cwd {self.cwd} · permissions {self.permission_mode}"
+            + (f" · reasoning {self.reasoning}" if self.reasoning else ""),
         )
         if self.agent:
             render.status(self.console, f"agent: {self.agent.name}")

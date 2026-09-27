@@ -13,7 +13,7 @@ class ScriptedProvider(Provider):
         self.calls = 0
 
     def stream_chat(self, messages, model, tools=None, temperature=None,
-                    max_tokens=None, on_delta=None):
+                    max_tokens=None, reasoning=None, on_delta=None):
         self.calls += 1
         resp = self.responses.pop(0)
         if on_delta and resp.content:

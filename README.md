@@ -235,6 +235,7 @@ byte-for-byte your layers, with no hidden prompt additions.
 | `/sessions`, `/resume <id>` | list / resume saved sessions |
 | `/cost` | token usage |
 | `/permissions [ask\|auto]` | tool approval mode |
+| `/reasoning [off\|low\|medium\|high]` | reasoning effort (reasoning_effort / thinking budget) |
 | `/config` | show effective config |
 | `/exit` | quit |
 

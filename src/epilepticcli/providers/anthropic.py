@@ -85,6 +85,9 @@ def _convert_messages(messages: list[dict[str, Any]]) -> tuple[str | None, list[
     return ("\n\n".join(system_parts) or None), out
 
 
+THINKING_BUDGETS = {"low": 1024, "medium": 4096, "high": 16000}
+
+
 class AnthropicProvider(Provider):
     def __init__(self, cfg: ProviderConfig, env_key: str | None = None) -> None:
         self.cfg = cfg
@@ -101,20 +104,27 @@ class AnthropicProvider(Provider):
         tools: list[ToolSpec] | None = None,
         temperature: float | None = None,
         max_tokens: int | None = None,
+        reasoning: str | None = None,
         on_delta: OnDelta | None = None,
     ) -> AssistantMessage:
         system, msgs = _convert_messages(messages)
+        budget = THINKING_BUDGETS.get(reasoning or "")
+        # max_tokens must exceed the thinking budget
+        mt = max(max_tokens or 8192, budget + 4096 if budget else 0)
         kwargs: dict[str, Any] = {
             "model": model,
             "messages": msgs,
-            "max_tokens": max_tokens or 8192,
+            "max_tokens": mt,
         }
+        if budget:
+            kwargs["thinking"] = {"type": "enabled", "budget_tokens": budget}
         if system:
             kwargs["system"] = system
         converted = _convert_tools(tools)
         if converted:
             kwargs["tools"] = converted
-        if temperature is not None:
+        # thinking is incompatible with a custom temperature
+        if temperature is not None and not budget:
             kwargs["temperature"] = temperature
 
         content_parts: list[str] = []

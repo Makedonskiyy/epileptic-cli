@@ -69,6 +69,7 @@ class Provider:
         tools: list[ToolSpec] | None = None,
         temperature: float | None = None,
         max_tokens: int | None = None,
+        reasoning: str | None = None,
         on_delta: OnDelta | None = None,
     ) -> AssistantMessage:
         raise NotImplementedError
