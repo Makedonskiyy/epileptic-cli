@@ -103,6 +103,19 @@ PRESETS: dict[str, Preset] = {
         env_key="DARKAPI_API_KEY",
         models=["gpt-6-luna"],
     ),
+    "tokvian": Preset(
+        type="openai",
+        base_url="https://tokvian.ru/v1",
+        env_key="TOKVIAN_API_KEY",
+        models=["gpt-6-astra", "gpt-5.6-sol", "gpt-6-sol"],
+    ),
+    "tokvian-anthropic": Preset(
+        type="anthropic",
+        # bare origin on purpose - the SDK appends /v1/messages itself
+        base_url="https://tokvian.ru",
+        env_key="TOKVIAN_API_KEY",
+        models=["claude-opus-4-7", "claude-opus-4-8"],
+    ),
     "ollama": Preset(
         type="openai",
         base_url="http://localhost:11434/v1",

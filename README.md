@@ -124,6 +124,8 @@ Presets (`/providers` lists them live, including key status):
 | `selora` | openai | `SELORA_API_KEY` | gateway: Anthropic/OpenAI/Moonshot models, `sk-gw-…` keys |
 | `selora-anthropic` | anthropic | `SELORA_API_KEY` | same gateway, native Anthropic wire |
 | `darkapi` | openai | `DARKAPI_API_KEY` | darkapi.shop gateway |
+| `tokvian` | openai | `TOKVIAN_API_KEY` | tokvian.ru gateway (chat + images + video) |
+| `tokvian-anthropic` | anthropic | `TOKVIAN_API_KEY` | same gateway, native Anthropic wire |
 | `ollama` | openai | – | localhost:11434 |
 | `lmstudio` | openai | – | localhost:1234 |
 | `demo` | demo | – | offline, for testing the UI |
