@@ -45,3 +45,14 @@ def test_provider_has_key(monkeypatch):
     cfg.providers["openai"] = ProviderConfig(name="openai", type="openai", api_key="sk-cfg")
     assert provider_has_key(cfg, "openai") is True
     assert provider_has_key(cfg, "demo") is True  # keyless
+
+
+def test_cun_preset():
+    from epilepticcli.providers.registry import PRESETS, resolve_env_key
+
+    assert "cun" in PRESETS
+    assert "cunai" in PRESETS
+    assert PRESETS["cun"].type == "openai"
+    assert PRESETS["cun"].base_url == "https://www.cun.ai/v1"
+    assert resolve_env_key("cun") == "CUN_API_KEY"
+    assert "claude-3-7-sonnet" in PRESETS["cun"].models

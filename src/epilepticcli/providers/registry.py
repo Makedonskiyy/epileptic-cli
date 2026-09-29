@@ -116,6 +116,30 @@ PRESETS: dict[str, Preset] = {
         env_key="TOKVIAN_API_KEY",
         models=["claude-opus-4-7", "claude-opus-4-8"],
     ),
+    "cun": Preset(
+        type="openai",
+        base_url="https://www.cun.ai/v1",
+        env_key="CUN_API_KEY",
+        models=[
+            "claude-3-7-sonnet",
+            "claude-3-5-sonnet",
+            "gpt-4o",
+            "deepseek-chat",
+            "deepseek-reasoner",
+        ],
+    ),
+    "cunai": Preset(
+        type="openai",
+        base_url="https://www.cun.ai/v1",
+        env_key="CUN_API_KEY",
+        models=[
+            "claude-3-7-sonnet",
+            "claude-3-5-sonnet",
+            "gpt-4o",
+            "deepseek-chat",
+            "deepseek-reasoner",
+        ],
+    ),
     "ollama": Preset(
         type="openai",
         base_url="http://localhost:11434/v1",

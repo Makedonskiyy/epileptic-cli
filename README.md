@@ -126,6 +126,7 @@ Presets (`/providers` lists them live, including key status):
 | `darkapi` | openai | `DARKAPI_API_KEY` | darkapi.shop gateway |
 | `tokvian` | openai | `TOKVIAN_API_KEY` | tokvian.ru gateway (chat + images + video) |
 | `tokvian-anthropic` | anthropic | `TOKVIAN_API_KEY` | same gateway, native Anthropic wire |
+| `cun` | openai | `CUN_API_KEY` | cun.ai gateway (OpenAI-compatible) |
 | `ollama` | openai | – | localhost:11434 |
 | `lmstudio` | openai | – | localhost:1234 |
 | `demo` | demo | – | offline, for testing the UI |
