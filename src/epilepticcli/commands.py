@@ -93,9 +93,14 @@ def _system(app, arg: str) -> bool:
     action = sub[0]
     if action == "show":
         content = app.messages[0]["content"] if app.messages and app.messages[0].get("role") == "system" else "(none)"
-        render.info_panel(app.console, f"effective system prompt ({len(content)} chars)", content[:6000])
-        if len(content) > 6000:
-            render.status(app.console, f"… truncated, {len(content)} chars total")
+        show_all = len(sub) > 1 and sub[1].lower() in ("all", "full")
+        preview = content if show_all else content[:6000]
+        render.info_panel(app.console, f"effective system prompt ({len(content)} chars)", preview)
+        if not show_all and len(content) > 6000:
+            render.status(
+                app.console,
+                f"… terminal preview truncated (sent in full to model: {len(content)} chars). Use /system show all to view full text",
+            )
     elif action == "raw":
         on = len(sub) < 2 or sub[1].lower() in ("on", "true", "1")
         app.raw_mode = on
