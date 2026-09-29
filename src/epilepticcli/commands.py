@@ -481,12 +481,51 @@ def _update(app, arg: str) -> bool:
     return "restarting to apply" not in msg
 
 
+def _paste(app, arg: str) -> bool:
+    """Paste text directly from clipboard into chat: /paste [message]"""
+    from epilepticcli.core.clipboard import get_clipboard_text
+
+    text = get_clipboard_text()
+    if not text or not text.strip():
+        render.error(app.console, "clipboard is empty or contains no text")
+        return True
+    lines = len(text.splitlines())
+    render.status(
+        app.console,
+        f"pasting from clipboard ({len(text)} chars, {lines} line{'s' if lines != 1 else ''})…",
+    )
+    prompt = f"{arg.strip()}\n\n{text}" if arg.strip() else text
+    app.chat(prompt)
+    return True
+
+
+def _multiline(app, arg: str) -> bool:
+    """Toggle multiline input mode: /multiline [on|off]"""
+    mode = arg.strip().lower()
+    if mode in ("on", "true", "1"):
+        app.multiline_mode = True
+    elif mode in ("off", "false", "0"):
+        app.multiline_mode = False
+    else:
+        app.multiline_mode = not app.multiline_mode
+
+    status_str = (
+        "ON (Enter = newline, Alt+Enter or Esc+Enter = send)"
+        if app.multiline_mode
+        else "OFF (Enter = send)"
+    )
+    render.status(app.console, f"multiline input mode → {status_str}")
+    return True
+
+
 _HANDLERS = {
     "help": _help,
     "setup": _setup,
     "key": _key,
     "keys": _key,
     "update": _update,
+    "paste": _paste,
+    "multiline": _multiline,
     "reasoning": _reasoning,
     "model": _model,
     "provider": _provider,

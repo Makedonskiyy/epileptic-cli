@@ -18,7 +18,7 @@ from epilepticcli.tools.base import Tool
 from epilepticcli.tools.registry import build_tools
 from epilepticcli.ui import render
 from epilepticcli.ui.banner import render as render_banner
-from epilepticcli.ui.input import bottom_bar, make_session, prompt_str
+from epilepticcli.ui.input import bottom_bar, make_session, prompt_continuation, prompt_str
 
 
 class App:
@@ -43,6 +43,7 @@ class App:
         self.extra_system = extra_system
         self.agent: Agent | None = None
         self.always_allowed: set[str] = set()
+        self.multiline_mode = False
 
         self.console = render.make_console()
         self.tools: dict[str, Tool] = build_tools(self.cwd)
@@ -251,7 +252,9 @@ class App:
             try:
                 text = session.prompt(
                     prompt_str(self.provider_name, self.model),
-                    bottom_toolbar=bottom_bar(self.permission_mode),
+                    bottom_toolbar=bottom_bar(self.permission_mode, self.multiline_mode),
+                    multiline=self.multiline_mode,
+                    prompt_continuation=prompt_continuation,
                 )
             except (EOFError, KeyboardInterrupt):
                 self.console.print()

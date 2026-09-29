@@ -93,7 +93,12 @@ def prompt_str(provider: str, model: str) -> HTML:
     )
 
 
-def bottom_bar(mode: str) -> HTML:
+def prompt_continuation(width: int, line_number: int, is_soft_wrap: bool) -> HTML:
+    return HTML(f'<style fg="#4c1d95">  … </style>')
+
+
+def bottom_bar(mode: str, multiline: bool = False) -> HTML:
+    ml_text = " · [multiline: Alt+Enter to send]" if multiline else ""
     return HTML(
-        f'<style fg="#4c1d95"> ⌬ {mode} mode · /help for commands · ! for shell · @ to attach files </style>'
+        f'<style fg="#4c1d95"> ⌬ {mode} mode{ml_text} · /help for commands · ! for shell · @ to attach files </style>'
     )

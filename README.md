@@ -224,6 +224,8 @@ byte-for-byte your layers, with no hidden prompt additions.
 | `/help` | command list |
 | `/setup` | interactive provider + API-key wizard |
 | `/key list\|set\|remove` | manage stored API keys |
+| `/paste [text]` | paste large text directly from clipboard without terminal mangling |
+| `/multiline [on\|off]` | toggle multiline input (Enter = newline, Alt+Enter = send) |
 | `/update` | check + self-update to the latest release |
 | `/model [name]` | show / switch model |
 | `/provider [name]`, `/providers` | switch / list providers + key status |

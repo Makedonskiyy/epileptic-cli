@@ -44,3 +44,17 @@ def test_unknown_tool(tmp_path):
     tools = build_tools(tmp_path)
     r = run_tool(tools, "nope", "{}")
     assert r.is_error
+
+
+def test_clipboard_reader():
+    from epilepticcli.core.clipboard import get_clipboard_text
+
+    res = get_clipboard_text()
+    assert res is None or isinstance(res, str)
+
+
+def test_paste_and_multiline_handlers():
+    from epilepticcli.commands import _HANDLERS
+
+    assert "paste" in _HANDLERS
+    assert "multiline" in _HANDLERS
