@@ -22,8 +22,10 @@ def test_raw_mode_drops_builtin(tmp_path):
 
 def test_memory_files_merged(tmp_path):
     (tmp_path / "AGENTS.md").write_text("rules")
+    (tmp_path / "AGENT.md").write_text("agent_rules")
     p = compose_system_prompt(make_cfg(), tmp_path)
     assert "rules" in p
+    assert "agent_rules" in p
 
 
 def test_agent_frontmatter(tmp_path):

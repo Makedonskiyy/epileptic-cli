@@ -18,7 +18,7 @@ from pathlib import Path
 
 from epilepticcli.config import SYSTEM_PROMPT_FILE, Config
 
-MEMORY_FILES = ("EPIC.md", "AGENTS.md", "CLAUDE.md")
+MEMORY_FILES = ("EPIC.md", "AGENTS.md", "AGENT.md", "CLAUDE.md")
 
 BUILTIN_PROMPT = """\
 You are EpilepticCLI, an AI coding and research assistant running in the user's terminal.
